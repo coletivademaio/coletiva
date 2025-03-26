@@ -66,7 +66,8 @@ function parseCSV(csv) {
     const obj = {};
 
     colunas.forEach((valor, index) => {
-      obj[cabecalho[index].trim()] = valor.trim();  // Atribui o valor do CSV ao objeto
+      // Garantir que o valor não seja undefined ou null antes de chamar o método trim()
+      obj[cabecalho[index].trim()] = valor ? valor.trim() : '';  // Se for undefined ou null, atribui string vazia
     });
 
     return obj;
@@ -74,3 +75,4 @@ function parseCSV(csv) {
 
   return dados;
 }
+
