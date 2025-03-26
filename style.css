@@ -1,5 +1,5 @@
 
- body {
+ /*body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -50,7 +50,7 @@
             color: #555;
         }
 
-        /* Responsividade */
+        /* Responsividade 
         @media (max-width: 600px) {
             .container {
                 padding: 15px;
@@ -64,3 +64,4 @@
                 font-size: 14px;
             }
         }
+*/
