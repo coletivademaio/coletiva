@@ -1,71 +1,121 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista de Nomes</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    table, th, td {
-      border: 1px solid #ddd;
-    }
-    th, td {
-      padding: 8px 12px;
-      text-align: left;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Nomes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #e9ecef;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            color: #333;
+        }
+
+        .stats {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stats span {
+            color: #555;
+        }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .stats {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>Lista de Nomes</h1>
-  <p id="quantidade"></p>
-  <p id="ultimoAdicionado"></p>
 
-  <table id="nomesTable">
-    <thead>
-      <tr>
-        <th>Nome</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Os nomes serão inseridos aqui -->
-    </tbody>
-  </table>
+    <div class="container">
+        <h1>Lista de Nomes</h1>
+        <ul id="namesList"></ul>
 
-  <script>
-    function carregarDados() {
-      fetch('https://script.google.com/macros/s/AKfycbxCyg9ehto7Q95y7E9Wbi0VQmud163TjqeI1PXmsO3llU0LDjdX-ABaJR8OdSXrfA5w/exec')
-        .then(response => response.json())
-        .then(data => {
-          // Exibir a quantidade de nomes
-          document.getElementById('quantidade').textContent = "Quantidade total de nomes: " + data.quantidade;
+        <div class="stats">
+            <div>
+                <span>Total de Nomes:</span> <span id="totalCount">0</span>
+            </div>
+            <div>
+                <span>Último Nome Adicionado:</span> <span id="lastAdded">-</span>
+            </div>
+        </div>
+    </div>
 
-          // Exibir o último nome adicionado
-          document.getElementById('ultimoAdicionado').textContent = "Último nome adicionado: " + data.ultimoAdicionado;
+    <script>
+        async function carregarDados() {
+            const url = "SUA-URL-DO-APP-DA-WEB";  // Substitua pela URL do seu Google Apps Script
 
-          // Preencher a tabela com os nomes
-          const tabela = document.getElementById('nomesTable').getElementsByTagName('tbody')[0];
-          data.nomes.forEach(nome => {
-            const linha = document.createElement('tr');
-            const celula = document.createElement('td');
-            celula.textContent = nome;
-            linha.appendChild(celula);
-            tabela.appendChild(linha);
-          });
-        })
-        .catch(error => {
-          console.error('Erro ao buscar os dados:', error);
-        });
-    }
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
 
-    // Carregar os dados assim que a página for carregada
-    window.onload = carregarDados;
-  </script>
+                // Exibe os nomes na lista
+                const namesList = document.getElementById("namesList");
+                data.nomes.forEach(nome => {
+                    const li = document.createElement("li");
+                    li.textContent = nome;
+                    namesList.appendChild(li);
+                });
+
+                // Exibe a quantidade total de nomes
+                document.getElementById("totalCount").textContent = data.quantidade;
+
+                // Exibe o último nome adicionado
+                document.getElementById("lastAdded").textContent = data.ultimoAdicionado;
+            } catch (error) {
+                console.error("Erro ao buscar os dados:", error);
+            }
+        }
+
+        carregarDados();
+    </script>
+
 </body>
 </html>
