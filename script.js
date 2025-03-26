@@ -5,28 +5,38 @@ async function carregarDados() {
         
         console.log("CSV Carregado: ", csvText); // Debug: ver o conteúdo do CSV
 
-        const linhas = csvText.trim().split("\n").slice(1); // Remove o cabeçalho "Nome"
+        const linhas = csvText.trim().split("\n").slice(1); // Remove o cabeçalho
 
         if (linhas.length === 0) {
-            console.warn("⚠️ Nenhum nome encontrado no CSV.");
+            console.warn("⚠️ Nenhum dado encontrado no CSV.");
             return;
         }
 
-        // Exibe os nomes na lista
         const namesList = document.getElementById("namesList");
         namesList.innerHTML = ""; // Limpa a lista antes de adicionar os nomes
 
-        linhas.forEach(nome => {
+        let ultimoNome = "";
+        let totalObras = 0;
+
+        linhas.forEach(linha => {
+            const partes = linha.split(","); // Separa Nome e Obras
+            const nome = partes[0].trim();
+            const obras = partes[1] ? partes[1].split(";").map(o => o.trim()) : [];
+
+            // Criar elemento da lista
             const li = document.createElement("li");
-            li.textContent = nome.trim(); // Remove espaços extras
+            li.innerHTML = `<strong>${nome}</strong>: ${obras.join(", ")}`;
             namesList.appendChild(li);
+
+            // Atualizar estatísticas
+            ultimoNome = nome;
+            totalObras += obras.length;
         });
 
-        // Exibe a quantidade total de nomes
+        // Exibir total de artistas e o último nome adicionado
         document.getElementById("totalCount").textContent = linhas.length;
-
-        // Exibe o último nome adicionado
-        document.getElementById("lastAdded").textContent = linhas[linhas.length - 1] || "-";
+        document.getElementById("lastAdded").textContent = ultimoNome;
+        document.getElementById("totalWorks").textContent = totalObras;
 
     } catch (error) {
         console.error("❌ Erro ao buscar os dados:", error);
