@@ -1,63 +1,73 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Candidatos</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Nomes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+    }
+  </style>
 </head>
 <body>
+  <h1>Lista de Nomes</h1>
+  <p id="quantidade"></p>
+  <p id="ultimoAdicionado"></p>
 
-    <h2>Lista de Candidatos</h2>
-    <p><strong>Total de Inscritos:</strong> <span id="totalInscritos">0</span></p>
-    <p><strong>Total de Obras:</strong> <span id="totalObras">0</span></p>
+  <table id="nomesTable">
+    <thead>
+      <tr>
+        <th>Nome</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Os nomes serão inseridos aqui -->
+    </tbody>
+  </table>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Obras</th>
-            </tr>
-        </thead>
-        <tbody id="tabelaCandidatos">
-        </tbody>
-    </table>
+  <script>
+    async function carregarDados() {
+      try {
+        const response = await fetch('dados.csv'); // Carrega o CSV
+        const csvText = await response.text();
+        const linhas = csvText.trim().split("\n").slice(1); // Ignora o cabeçalho "Nome"
 
-    <script>
-        async function carregarCSV() {
-            const response = await fetch('dados.csv'); // Carrega o CSV
-            const csvText = await response.text();
-            const linhas = csvText.trim().split("\n"); // Separa linhas
+        // Exibir a quantidade total de nomes
+        document.getElementById('quantidade').textContent = "Quantidade total de nomes: " + linhas.length;
 
-            let totalObras = 0;
-            const candidatos = linhas.slice(1).map(linha => {
-                const [nome, obras] = linha.split(",");
-                const obrasLista = obras ? obras.split("|") : [];
-                totalObras += obrasLista.length;
+        // Exibir o último nome adicionado
+        document.getElementById('ultimoAdicionado').textContent = "Último nome adicionado: " + (linhas.length ? linhas[linhas.length - 1] : "Nenhum nome");
 
-                return { nome, obras: obrasLista };
-            });
+        // Preencher a tabela com os nomes
+        const tabela = document.getElementById('nomesTable').getElementsByTagName('tbody')[0];
+        linhas.forEach(nome => {
+          const linha = document.createElement('tr');
+          const celula = document.createElement('td');
+          celula.textContent = nome;
+          linha.appendChild(celula);
+          tabela.appendChild(linha);
+        });
 
-            document.getElementById("totalInscritos").textContent = candidatos.length;
-            document.getElementById("totalObras").textContent = totalObras;
+      } catch (error) {
+        console.error('Erro ao buscar os dados:', error);
+      }
+    }
 
-            // Monta a tabela
-            const tabela = document.getElementById("tabelaCandidatos");
-            tabela.innerHTML = candidatos.map(candidato => `
-                <tr>
-                    <td>${candidato.nome}</td>
-                    <td>${candidato.obras.join(", ")}</td>
-                </tr>
-            `).join("");
-        }
-
-        carregarCSV();
-    </script>
-
+    // Carregar os dados quando a página carregar
+    window.onload = carregarDados;
+  </script>
 </body>
 </html>
