@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   carregarDados();
 });
 
@@ -8,13 +8,13 @@ function carregarDados() {
   const totalWorks = document.getElementById('totalWorks');
   const lastAdded = document.getElementById('lastAdded');
 
-  // Verificando se os elementos foram encontrados
+  // Verificando se os elementos foram encontrados no DOM
   if (!namesList || !totalCount || !totalWorks || !lastAdded) {
-    console.error('Um ou mais elementos não foram encontrados no DOM.');
+    console.error('Erro: Um ou mais elementos não foram encontrados no DOM.');
     return;
   }
 
-  fetch('dados.csv')  // Caminho para o seu arquivo CSV
+  fetch('dados.csv')
     .then(response => {
       if (!response.ok) {
         throw new Error('Falha ao carregar o arquivo CSV');
@@ -24,55 +24,60 @@ function carregarDados() {
     .then(csv => {
       const dados = parseCSV(csv);
       const obrasPorInscrito = {};
-      const inscritos = new Set();  // Para garantir que estamos contando inscritos únicos
+      const inscritos = new Set();
 
       dados.forEach(item => {
         const inscrito = item.INSCRITOS;
+        const obras = item.OBRAS ? item.OBRAS.split(';') : []; // Corrigindo separação das obras
 
         if (inscrito) {
-          // Garantir que o inscrito seja contado apenas uma vez
           inscritos.add(inscrito);
-
-          // Inicializar contador de obras se não existir
+          
           if (!obrasPorInscrito[inscrito]) {
             obrasPorInscrito[inscrito] = 0;
           }
 
-          // Incrementa a quantidade de obras do inscrito
-          obrasPorInscrito[inscrito]++;
+          obrasPorInscrito[inscrito] += obras.length;
         }
       });
 
-      // Atualizando as estatísticas
+      // Atualizando os valores no HTML
       totalCount.textContent = inscritos.size;
       totalWorks.textContent = Object.values(obrasPorInscrito).reduce((acc, count) => acc + count, 0);
+      lastAdded.textContent = inscritos.size > 0 ? [...inscritos].pop() : '-';
 
-      // Exibindo o último artista adicionado
-      if (inscritos.size > 0) {
-        lastAdded.textContent = [...inscritos].pop();
-      }
+      // Atualizando a lista de artistas
+      namesList.innerHTML = '';
+      inscritos.forEach(inscrito => {
+        const li = document.createElement('li');
+        li.textContent = inscrito;
+        namesList.appendChild(li);
+      });
     })
     .catch(error => {
       console.error('Erro ao carregar ou processar o arquivo CSV:', error);
     });
 }
 
-// Função para parsear CSV simples
+// Função para parsear CSV corretamente
 function parseCSV(csv) {
-  const linhas = csv.split('\n').filter(linha => linha.trim() !== '');  // Ignorar linhas vazias
-  const cabecalho = linhas[0].split(',');  // Primeira linha é o cabeçalho
-  const dados = linhas.slice(1).map(linha => {
+  const linhas = csv.trim().split('\n').filter(linha => linha.trim() !== ''); // Ignorar linhas vazias
+  const cabecalho = linhas[0].split(',').map(col => col.trim());
+  const dados = [];
+
+  linhas.slice(1).forEach(linha => {
     const colunas = linha.split(',');
-    const obj = {};
+    
+    if (colunas.length >= 2) { // Evita erros se houver colunas faltando
+      const inscrito = colunas[0].trim();
+      const obras = colunas.slice(1).map(obra => obra.trim()).join(';'); // Une obras corretamente
 
-    colunas.forEach((valor, index) => {
-      // Garantir que o valor não seja undefined ou null antes de chamar o método trim()
-      obj[cabecalho[index].trim()] = valor ? valor.trim() : '';  // Se for undefined ou null, atribui string vazia
-    });
-
-    return obj;
+      dados.push({
+        INSCRITOS: inscrito,
+        OBRAS: obras
+      });
+    }
   });
 
   return dados;
 }
-
