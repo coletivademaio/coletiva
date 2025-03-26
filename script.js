@@ -22,61 +22,86 @@ function carregarDados() {
       return response.text();
     })
     .then(csv => {
-      const dados = parseCSV(csv);
-      const obrasPorInscrito = {};
-      const inscritos = new Set();
-
-      dados.forEach(item => {
-        const inscrito = item.INSCRITOS;
-        const obras = item.OBRAS ? item.OBRAS.split(';') : []; // Corrigindo separação das obras
-
-        if (inscrito) {
-          inscritos.add(inscrito);
-          
-          if (!obrasPorInscrito[inscrito]) {
-            obrasPorInscrito[inscrito] = 0;
-          }
-
-          obrasPorInscrito[inscrito] += obras.length;
+      try {
+        const dados = parseCSV(csv);
+        if (dados.length === 0) {
+          throw new Error('O CSV está vazio ou não foi processado corretamente.');
         }
-      });
 
-      // Atualizando os valores no HTML
-      totalCount.textContent = inscritos.size;
-      totalWorks.textContent = Object.values(obrasPorInscrito).reduce((acc, count) => acc + count, 0);
-      lastAdded.textContent = inscritos.size > 0 ? [...inscritos].pop() : '-';
+        const obrasPorInscrito = {};
+        const inscritos = new Set();
 
-      // Atualizando a lista de artistas
-      namesList.innerHTML = '';
-      inscritos.forEach(inscrito => {
-        const li = document.createElement('li');
-        li.textContent = inscrito;
-        namesList.appendChild(li);
-      });
+        dados.forEach(item => {
+          const inscrito = item.INSCRITOS || ''; // Garante que existe
+          const obras = item.OBRAS ? item.OBRAS.split(';') : [];
+
+          if (inscrito.trim() !== '') {
+            inscritos.add(inscrito);
+
+            if (!obrasPorInscrito[inscrito]) {
+              obrasPorInscrito[inscrito] = 0;
+            }
+
+            obrasPorInscrito[inscrito] += obras.length;
+          }
+        });
+
+        // Atualizando os valores no HTML
+        totalCount.textContent = inscritos.size;
+        totalWorks.textContent = Object.values(obrasPorInscrito).reduce((acc, count) => acc + count, 0);
+        lastAdded.textContent = inscritos.size > 0 ? [...inscritos].pop() : '-';
+
+        // Atualizando a lista de artistas
+        namesList.innerHTML = '';
+        inscritos.forEach(inscrito => {
+          const li = document.createElement('li');
+          li.textContent = inscrito;
+          namesList.appendChild(li);
+        });
+
+      } catch (error) {
+        console.error('Erro ao processar os dados:', error);
+      }
     })
     .catch(error => {
-      console.error('Erro ao carregar ou processar o arquivo CSV:', error);
+      console.error('Erro ao carregar o arquivo CSV:', error);
     });
 }
 
 // Função para parsear CSV corretamente
 function parseCSV(csv) {
-  const linhas = csv.trim().split('\n').filter(linha => linha.trim() !== ''); // Ignorar linhas vazias
-  const cabecalho = linhas[0].split(',').map(col => col.trim());
+  if (!csv) {
+    console.error('O arquivo CSV está vazio.');
+    return [];
+  }
+
+  let linhas = csv.split(/\r?\n/).filter(linha => linha.trim() !== ''); // Remove linhas vazias
+  if (linhas.length < 2) {
+    console.error('O CSV contém apenas cabeçalho ou está vazio.');
+    return [];
+  }
+
+  // Detecta automaticamente o delimitador: ',' ou ';'
+  let delimitador = linhas[0].includes(';') ? ';' : ',';
+
+  const cabecalho = linhas[0].split(delimitador).map(col => col.trim());
   const dados = [];
 
   linhas.slice(1).forEach(linha => {
-    const colunas = linha.split(',');
-    
-    if (colunas.length >= 2) { // Evita erros se houver colunas faltando
-      const inscrito = colunas[0].trim();
-      const obras = colunas.slice(1).map(obra => obra.trim()).join(';'); // Une obras corretamente
+    const colunas = linha.split(delimitador).map(col => col.trim());
 
-      dados.push({
-        INSCRITOS: inscrito,
-        OBRAS: obras
-      });
+    // Ignora linhas incompletas
+    if (colunas.length < cabecalho.length) {
+      console.warn('Linha ignorada (faltando colunas):', linha);
+      return;
     }
+
+    let obj = {};
+    cabecalho.forEach((chave, index) => {
+      obj[chave] = colunas[index] || ''; // Garante que não seja undefined
+    });
+
+    dados.push(obj);
   });
 
   return dados;
