@@ -1,33 +1,38 @@
-async function carregarDados() {
-    try {
-        const response = await fetch('dados.csv'); // Certifique-se de que o CSV está na mesma pasta do HTML
-        const data = await response.text();
-        const linhas = data.split('\n').map(linha => linha.trim()).filter(linha => linha);
-        
-        const artistsList = document.getElementById("artistsList");
-        artistsList.innerHTML = "";
-        
-        let artistas = [];
-        
-        linhas.forEach(linha => {
-            const [nome, ...obras] = linha.split(',');
-            if (nome && obras.length > 0) {
-                artistas.push({ nome, obras });
-            }
-        });
-        
-        artistas.forEach(artista => {
-            const li = document.createElement("li");
-            li.innerHTML = `<strong>${artista.nome}</strong>: ${artista.obras.join(', ')}`;
-            artistsList.appendChild(li);
-        });
-        
-        document.getElementById("totalCount").textContent = artistas.length;
-        document.getElementById("lastAdded").textContent = artistas.length > 0 ? artistas[artistas.length - 1].nome : "-";
-        
-    } catch (error) {
-        console.error("Erro ao carregar os dados:", error);
-    }
-}
+fetch('dados.csv')
+  .then(response => response.text())
+  .then(csv => {
+    const dados = parseCSV(csv);
+    const obrasPorInscrito = {};
+    const inscritos = new Set();  // Para garantir que estamos contando inscritos únicos
 
-document.addEventListener("DOMContentLoaded", carregarDados);
+    dados.forEach(item => {
+      const inscrito = item.INSCRITOS;
+      
+      // Garantir que o inscrito seja contado apenas uma vez
+      inscritos.add(inscrito);
+
+      if (!obrasPorInscrito[inscrito]) {
+        obrasPorInscrito[inscrito] = 0;
+      }
+      obrasPorInscrito[inscrito]++;
+    });
+
+    // Agora você pode ver o número de inscritos únicos e as obras por inscrito
+    console.log("Inscritos Únicos:", inscritos.size);
+    console.log("Obras por Inscrito:", obrasPorInscrito);
+  });
+
+// Função para parsear CSV simples
+function parseCSV(csv) {
+  const linhas = csv.split('\n');
+  const cabecalho = linhas[0].split(',');
+  const dados = linhas.slice(1).map(linha => {
+    const colunas = linha.split(',');
+    const obj = {};
+    colunas.forEach((valor, index) => {
+      obj[cabecalho[index].trim()] = valor.trim();
+    });
+    return obj;
+  });
+  return dados;
+}
