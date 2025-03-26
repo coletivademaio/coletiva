@@ -3,10 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Coletiva de Maio</title>
+  <title>Lista de Nomes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+    }
+  </style>
 </head>
 <body>
-  <h1>Bem-vindo à Coletiva de Maio</h1>
-  <p>Este é um exemplo de página simples!</p>
+  <h1>Lista de Nomes</h1>
+  <p id="quantidade"></p>
+  <p id="ultimoAdicionado"></p>
+
+  <table id="nomesTable">
+    <thead>
+      <tr>
+        <th>Nome</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Os nomes serão inseridos aqui -->
+    </tbody>
+  </table>
+
+  <script>
+    function carregarDados() {
+      fetch('https://script.google.com/macros/s/AKfycbxCyg9ehto7Q95y7E9Wbi0VQmud163TjqeI1PXmsO3llU0LDjdX-ABaJR8OdSXrfA5w/exec')
+        .then(response => response.json())
+        .then(data => {
+          // Exibir a quantidade de nomes
+          document.getElementById('quantidade').textContent = "Quantidade total de nomes: " + data.quantidade;
+
+          // Exibir o último nome adicionado
+          document.getElementById('ultimoAdicionado').textContent = "Último nome adicionado: " + data.ultimoAdicionado;
+
+          // Preencher a tabela com os nomes
+          const tabela = document.getElementById('nomesTable').getElementsByTagName('tbody')[0];
+          data.nomes.forEach(nome => {
+            const linha = document.createElement('tr');
+            const celula = document.createElement('td');
+            celula.textContent = nome;
+            linha.appendChild(celula);
+            tabela.appendChild(linha);
+          });
+        })
+        .catch(error => {
+          console.error('Erro ao buscar os dados:', error);
+        });
+    }
+
+    // Carregar os dados assim que a página for carregada
+    window.onload = carregarDados;
+  </script>
 </body>
 </html>
